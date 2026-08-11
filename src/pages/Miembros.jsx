@@ -22,7 +22,7 @@ function Miembros() {
       <section className="relative flex h-screen items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/Img/FONDO%20MIEMBROS.png')" }}
+          style={{ backgroundImage: "url('/Img/FONDO%20MIEMBROS.webp')" }}
         />
         <div className="absolute inset-0 bg-night-950/80" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-night-950" />

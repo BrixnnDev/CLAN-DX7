@@ -15,7 +15,7 @@ function VideoSection() {
           <video
             controls
             preload="metadata"
-            poster="/Img/FONDO%20INICIO.png"
+            poster="/Img/FONDO%20INICIO.webp"
             className="aspect-video w-full object-cover"
           >
             <source src="/video/clan.mp4" type="video/mp4" />

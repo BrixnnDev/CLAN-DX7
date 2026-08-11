@@ -16,7 +16,7 @@ function Hero() {
     >
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/Img/FONDO%20INICIO.png')" }}
+        style={{ backgroundImage: "url('/Img/FONDO%20INICIO.webp')" }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-night-950" />
 

@@ -58,7 +58,7 @@ function Reglas() {
       <section className="relative flex h-screen items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/Img/FONDO%20REGLAS.png')" }}
+          style={{ backgroundImage: "url('/Img/FONDO%20REGLAS.webp')" }}
         />
         <div className="absolute inset-0 bg-night-950/80" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-night-950 to-transparent" />

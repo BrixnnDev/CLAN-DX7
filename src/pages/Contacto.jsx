@@ -6,7 +6,7 @@ function ContactoPage() {
     <div className="relative flex h-screen flex-col pt-16">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/Img/FONDO%20CONTACTO.png')" }}
+        style={{ backgroundImage: "url('/Img/FONDO%20CONTACTO.webp')" }}
       />
       <div className="absolute inset-0 bg-night-950/80" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/60 to-transparent" />

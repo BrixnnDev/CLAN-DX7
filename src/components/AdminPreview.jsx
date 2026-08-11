@@ -37,7 +37,7 @@ function AdminPreview() {
         <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
           <div className="h-full min-h-[280px] overflow-hidden rounded-2xl border border-white/10">
             <img
-              src="/Img/LOGO%20ADMIN.png"
+              src="/Img/LOGO%20ADMIN.webp"
               alt="Logo de administradores DX7"
               className="h-full w-full object-cover"
             />

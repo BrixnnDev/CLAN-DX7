@@ -92,7 +92,7 @@ function Nosotros() {
           <div className="relative">
             <div className="absolute -inset-3 -z-10 rounded-2xl bg-gradient-to-br from-clan-red-600/40 to-transparent blur-xl" />
             <img
-              src="/Img/FONDO%20INICIO.png"
+              src="/Img/FONDO%20INICIO.webp"
               alt="Clan DX7"
               className="aspect-[4/3] w-full rounded-2xl border border-white/10 object-cover opacity-80"
             />
