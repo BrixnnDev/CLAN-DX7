@@ -1,5 +1,6 @@
 import { FaCrown, FaTrophy, FaGamepad, FaStar, FaChevronDown } from 'react-icons/fa'
 import { miembros } from '../data/miembros'
+import Solicitudes from '../components/Solicitudes'
 
 function initials(name) {
   return name
@@ -103,6 +104,8 @@ function Miembros() {
           </div>
         </div>
       </section>
+
+      <Solicitudes />
     </div>
   )
 }
