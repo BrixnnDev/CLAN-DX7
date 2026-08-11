@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night-950: #050505;
+  --color-night-900: #0a0a0a;
+  --color-night-850: #111111;
+  --color-night-800: #161616;
+  --color-night-700: #1f1f1f;
+  --color-night-600: #2a2a2a;
+
+  --color-clan-red-500: #dc2626;
+  --color-clan-red-600: #b91c1c;
+  --color-clan-red-700: #991b1b;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #dc2626 #0a0a0a;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #dc2626;
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b91c1c;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    background-color: var(--color-night-950);
+    background-image:
+      radial-gradient(900px 600px at 12% 18%, rgba(220, 38, 38, 0.07), transparent 60%),
+      radial-gradient(900px 600px at 88% 72%, rgba(185, 28, 28, 0.07), transparent 60%),
+      radial-gradient(700px 500px at 60% 45%, rgba(220, 38, 38, 0.04), transparent 60%);
+    background-attachment: fixed;
+    color: white;
+    font-family: system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--color-clan-red-600);
+    color: white;
+  }
+}
