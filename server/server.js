@@ -23,6 +23,7 @@ const MAX_REQUESTS = 100
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN ?? ''
 const ADMIN_CHANNEL_ID = process.env.ADMIN_CHANNEL_ID ?? ''
 const API_SECRET = process.env.API_SECRET ?? ''
+const GUILD_ID = process.env.GUILD_ID ?? ''
 const PORT = process.env.PORT ?? 3000
 
 if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
@@ -103,9 +104,24 @@ if (!DISCORD_TOKEN) {
 
   client.on(Events.ClientReady, async () => {
     console.log(`Bot listo como ${client.user.tag}`)
+    console.log(
+      `Servidores del bot: ${client.guilds.cache.map((g) => `${g.name} (${g.id})`).join(', ') || 'NINGUNO (no esta en ningun servidor)'}`,
+    )
     try {
-      await client.application.commands.create(teamCommand)
-      console.log('Comando /team registrado (global)')
+      if (GUILD_ID) {
+        const guild = client.guilds.cache.get(GUILD_ID)
+        if (guild) {
+          await guild.commands.create(teamCommand)
+          console.log(`Comando /team registrado AL INSTANTE en el servidor ${guild.name}`)
+        } else {
+          console.warn(
+            `No encontre el servidor con ID ${GUILD_ID}. Revisa el GUILD_ID o que el bot este invitado ahi.`,
+          )
+        }
+      } else {
+        await client.application.commands.create(teamCommand)
+        console.log('Comando /team registrado (global, puede tardar hasta 1 hora en aparecer)')
+      }
     } catch (error) {
       console.error('No se pudo registrar el comando:', error.message)
     }
