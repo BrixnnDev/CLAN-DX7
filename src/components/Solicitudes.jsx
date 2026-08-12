@@ -60,7 +60,7 @@ function Solicitudes() {
             Miembros verificados
           </span>
           <h2 className="mt-2 text-3xl font-black uppercase sm:text-4xl">
-            Nuevos <span className="text-clan-red-500">integrantes</span>
+            Nuestros <span className="text-clan-red-500">integrantes</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-gray-400">
             Jugadores que pasaron la verificación con el comando /team en

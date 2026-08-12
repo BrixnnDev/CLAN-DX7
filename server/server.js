@@ -12,6 +12,7 @@ import {
   EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
   PermissionsBitField,
 } from 'discord.js'
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
@@ -60,6 +61,56 @@ function updateRequest(id, patch) {
   requests[i] = { ...requests[i], ...patch }
   saveRequests(requests)
   return requests[i]
+}
+
+function buildRoleOptions(guild) {
+  return [...(guild?.roles.cache.values() ?? [])]
+    .filter((r) => r.name !== '@everyone' && !r.managed)
+    .sort((a, b) => b.position - a.position)
+    .slice(0, 25)
+    .map((r) => ({ label: r.name, value: r.id }))
+}
+
+function buildAdminEmbed(request, guild) {
+  const selected = request.selectedRoleId
+    ? guild?.roles.resolve(request.selectedRoleId)
+    : null
+  return new EmbedBuilder()
+    .setColor(0xb91c1c)
+    .setTitle('Nueva solicitud para DX7')
+    .setDescription(`Solicitud de <@${request.discordId}>`)
+    .setThumbnail(request.avatar)
+    .addFields(
+      { name: 'Usuario', value: `@${request.discordUser}`, inline: true },
+      { name: 'Rol actual', value: request.role, inline: true },
+      { name: 'Nombre en el juego', value: request.gameName, inline: true },
+      { name: 'ID del juego', value: request.gameId, inline: true },
+      { name: 'Rol a asignar', value: selected ? selected.name : 'No elegido' },
+    )
+    .setFooter({ text: 'Elige el rol en el menú y luego presiona Aprobar' })
+    .setTimestamp()
+}
+
+function buildAdminRows(request, guild) {
+  const rows = []
+  const roleOptions = buildRoleOptions(guild)
+  if (roleOptions.length) {
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(`dx7:select:${request.id}`)
+      .setPlaceholder('Elige el rol a asignar')
+      .addOptions(roleOptions)
+    rows.push(new ActionRowBuilder().addComponents(menu))
+  }
+  const approveBtn = new ButtonBuilder()
+    .setCustomId(`dx7:approve:${request.id}`)
+    .setLabel('Aprobar')
+    .setStyle(ButtonStyle.Success)
+  const rejectBtn = new ButtonBuilder()
+    .setCustomId(`dx7:reject:${request.id}`)
+    .setLabel('Rechazar')
+    .setStyle(ButtonStyle.Danger)
+  rows.push(new ActionRowBuilder().addComponents(approveBtn, rejectBtn))
+  return rows
 }
 
 const app = express()
@@ -204,37 +255,48 @@ if (!DISCORD_TOKEN) {
         if (ADMIN_CHANNEL_ID) {
           const channel = await client.channels.fetch(ADMIN_CHANNEL_ID).catch(() => null)
           if (channel?.isTextBased()) {
-            const embed = new EmbedBuilder()
-              .setColor(0xb91c1c)
-              .setTitle('Nueva solicitud para DX7')
-              .setDescription(`Solicitud de <@${request.discordId}>`)
-              .setThumbnail(request.avatar)
-              .addFields(
-                { name: 'Usuario', value: `@${request.discordUser}`, inline: true },
-                { name: 'Rol actual', value: request.role, inline: true },
-                { name: 'Nombre en el juego', value: request.gameName, inline: true },
-                { name: 'ID del juego', value: request.gameId, inline: true },
-              )
-              .setFooter({ text: 'Solicitud pendiente de revisión' })
-              .setTimestamp()
-
-            const approveBtn = new ButtonBuilder()
-              .setCustomId(`dx7:approve:${request.id}`)
-              .setLabel('Aprobar')
-              .setStyle(ButtonStyle.Success)
-            const rejectBtn = new ButtonBuilder()
-              .setCustomId(`dx7:reject:${request.id}`)
-              .setLabel('Rechazar')
-              .setStyle(ButtonStyle.Danger)
-            const row = new ActionRowBuilder().addComponents(approveBtn, rejectBtn)
-
-            await channel.send({ embeds: [embed], components: [row] })
+            await channel.send({
+              embeds: [buildAdminEmbed(request, interaction.guild)],
+              components: buildAdminRows(request, interaction.guild),
+            })
           }
         }
 
         await interaction.reply({
           content:
-            '✅ ¡Solicitud enviada! Un administrador la revisará. Si es aprobada, aparecerá en la página de miembros.',
+            '✅ ¡Solicitud enviada! Un administrador la revisará y elegirá tu rol. Si es aprobada, aparecerás en la página de miembros.',
+          ephemeral: true,
+        })
+        return
+      }
+
+      if (interaction.isStringSelectMenu()) {
+        const [prefix, action, requestId] = interaction.customId.split(':')
+        if (prefix !== 'dx7' || action !== 'select') return
+
+        const isAdmin =
+          interaction.member?.permissions?.has(PermissionsBitField.Flags.Administrator)
+        if (!isAdmin) {
+          return interaction.reply({
+            content: '❌ Solo un administrador puede elegir el rol.',
+            ephemeral: true,
+          })
+        }
+
+        const roleId = interaction.values[0]
+        updateRequest(requestId, { selectedRoleId: roleId })
+
+        const request = loadRequests().find((r) => r.id === requestId)
+        if (!request) {
+          return interaction.reply({ content: 'Solicitud no encontrada.', ephemeral: true })
+        }
+
+        await interaction.message.edit({
+          embeds: [buildAdminEmbed(request, interaction.guild)],
+          components: buildAdminRows(request, interaction.guild),
+        })
+        await interaction.reply({
+          content: `Rol guardado: @${interaction.guild?.roles.resolve(roleId)?.name ?? '?'}. Ahora presiona Aprobar.`,
           ephemeral: true,
         })
         return
@@ -268,36 +330,42 @@ if (!DISCORD_TOKEN) {
         }
 
         if (action === 'approve') {
-          let roleName = request.role
-          if (ROLE_ID) {
-            const roleIds = ROLE_ID.split(',')
-              .map((r) => r.trim())
-              .filter(Boolean)
-            const names = []
-            for (const roleId of roleIds) {
-              const role = interaction.guild?.roles.resolve(roleId)
+          const guild = interaction.guild
+          const target = await guild?.members.fetch(request.discordId).catch(() => null)
+          const assigned = []
+
+          if (request.selectedRoleId) {
+            const role = guild?.roles.resolve(request.selectedRoleId)
+            if (role) {
+              if (target) {
+                await target.roles.add(request.selectedRoleId).catch((e) => {
+                  console.error('No se pudo asignar el rol:', e.message)
+                })
+              }
+              assigned.push(role.name)
+            }
+          } else if (ROLE_ID) {
+            for (const roleId of ROLE_ID.split(',').map((r) => r.trim()).filter(Boolean)) {
+              const role = guild?.roles.resolve(roleId)
               if (role) {
-                names.push(role.name)
-                const target = await interaction.guild?.members
-                  .fetch(request.discordId)
-                  .catch(() => null)
                 if (target) {
                   await target.roles.add(roleId).catch((e) => {
                     console.error(`No se pudo asignar el rol ${roleId}:`, e.message)
                   })
                 }
+                assigned.push(role.name)
               }
             }
-            if (names.length) roleName = names.join(' · ')
           }
+
           updateRequest(requestId, {
             status: 'approved',
-            role: roleName,
+            role: assigned.length ? assigned.join(' · ') : request.role,
             reviewedAt: new Date().toISOString(),
           })
           await interaction.message.edit({ components: [] })
           await interaction.reply({
-            content: `✅ Solicitud de ${request.gameName} aprobada. Ya aparece en la página de miembros.`,
+            content: `✅ Solicitud de ${request.gameName} aprobada. Rol asignado: ${assigned.join(' · ') || request.role}. Ya aparece en la página de miembros.`,
             ephemeral: true,
           })
         } else {
