@@ -27,7 +27,7 @@ function Unete() {
               comunidad de DX7 en un solo lugar.
             </p>
             <a
-              href="#"
+              href="https://discord.gg/PvUz57J6qK"
               target="_blank"
               rel="noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#5865F2] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white transition hover:brightness-110"
@@ -47,7 +47,7 @@ function Unete() {
               importantes del clan.
             </p>
             <a
-              href="#"
+              href="https://chat.whatsapp.com/FAYsEVlllaBCuZcRxA5G8q?s=cl&p=a&mlu=4"
               target="_blank"
               rel="noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white transition hover:brightness-110"
