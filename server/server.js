@@ -28,6 +28,7 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN ?? ''
 const ADMIN_CHANNEL_ID = process.env.ADMIN_CHANNEL_ID ?? ''
 const VERIFY_CHANNEL_ID = process.env.VERIFY_CHANNEL_ID ?? ''
 const ROLE_ID = process.env.ROLE_ID ?? ''
+const VERIFY_ROLE_ID = process.env.VERIFY_ROLE_ID ?? ''
 const API_SECRET = process.env.API_SECRET ?? ''
 const GUILD_ID = process.env.GUILD_ID ?? ''
 const PORT = process.env.PORT ?? 3000
@@ -334,27 +335,25 @@ if (!DISCORD_TOKEN) {
           const target = await guild?.members.fetch(request.discordId).catch(() => null)
           const assigned = []
 
-          if (request.selectedRoleId) {
-            const role = guild?.roles.resolve(request.selectedRoleId)
-            if (role) {
-              if (target) {
-                await target.roles.add(request.selectedRoleId).catch((e) => {
-                  console.error('No se pudo asignar el rol:', e.message)
-                })
-              }
-              assigned.push(role.name)
+          const addRole = async (roleId) => {
+            const role = guild?.roles.resolve(roleId)
+            if (!role) return
+            if (target) {
+              await target.roles.add(roleId).catch((e) => {
+                console.error(`No se pudo asignar el rol ${roleId}:`, e.message)
+              })
             }
+            if (!assigned.includes(role.name)) assigned.push(role.name)
+          }
+
+          if (VERIFY_ROLE_ID) {
+            await addRole(VERIFY_ROLE_ID)
+          }
+          if (request.selectedRoleId) {
+            await addRole(request.selectedRoleId)
           } else if (ROLE_ID) {
             for (const roleId of ROLE_ID.split(',').map((r) => r.trim()).filter(Boolean)) {
-              const role = guild?.roles.resolve(roleId)
-              if (role) {
-                if (target) {
-                  await target.roles.add(roleId).catch((e) => {
-                    console.error(`No se pudo asignar el rol ${roleId}:`, e.message)
-                  })
-                }
-                assigned.push(role.name)
-              }
+              await addRole(roleId)
             }
           }
 
@@ -365,7 +364,7 @@ if (!DISCORD_TOKEN) {
           })
           await interaction.message.edit({ components: [] })
           await interaction.reply({
-            content: `✅ Solicitud de ${request.gameName} aprobada. Rol asignado: ${assigned.join(' · ') || request.role}. Ya aparece en la página de miembros.`,
+            content: `✅ Solicitud de ${request.gameName} aprobada. Roles asignados: ${assigned.join(' · ') || request.role}. Ya aparece en la página de miembros.`,
             ephemeral: true,
           })
         } else {
