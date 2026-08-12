@@ -94,11 +94,7 @@ if (!DISCORD_TOKEN) {
   console.warn('AVISO: DISCORD_TOKEN no está configurado. El bot no se conectará.')
 } else {
   const client = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.MessageContent,
-    ],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
   })
 
   const teamCommand = new SlashCommandBuilder()
