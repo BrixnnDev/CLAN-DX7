@@ -270,18 +270,25 @@ if (!DISCORD_TOKEN) {
         if (action === 'approve') {
           let roleName = request.role
           if (ROLE_ID) {
-            const role = interaction.guild?.roles.resolve(ROLE_ID)
-            if (role) {
-              roleName = role.name
-              const target = await interaction.guild?.members
-                .fetch(request.discordId)
-                .catch(() => null)
-              if (target) {
-                await target.roles.add(ROLE_ID).catch((e) => {
-                  console.error('No se pudo asignar el rol:', e.message)
-                })
+            const roleIds = ROLE_ID.split(',')
+              .map((r) => r.trim())
+              .filter(Boolean)
+            const names = []
+            for (const roleId of roleIds) {
+              const role = interaction.guild?.roles.resolve(roleId)
+              if (role) {
+                names.push(role.name)
+                const target = await interaction.guild?.members
+                  .fetch(request.discordId)
+                  .catch(() => null)
+                if (target) {
+                  await target.roles.add(roleId).catch((e) => {
+                    console.error(`No se pudo asignar el rol ${roleId}:`, e.message)
+                  })
+                }
               }
             }
+            if (names.length) roleName = names.join(' · ')
           }
           updateRequest(requestId, {
             status: 'approved',
