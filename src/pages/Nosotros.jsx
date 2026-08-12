@@ -102,7 +102,9 @@ function Nosotros() {
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             <a
-              href="#"
+              href="https://discord.gg/PvUz57J6qK"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-clan-red-600 to-clan-red-700 px-8 py-3 text-sm font-bold uppercase tracking-wider text-white transition hover:brightness-110"
             >
               <FaDiscord className="h-4 w-4" />
