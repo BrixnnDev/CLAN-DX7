@@ -195,5 +195,17 @@ if (!DISCORD_TOKEN) {
     }
   })
 
-  client.login(DISCORD_TOKEN)
+  client.login(DISCORD_TOKEN).catch((error) => {
+    console.error('ERROR al conectar el bot:', error.message)
+    console.error(
+      'Revisa que DISCORD_TOKEN sea el token real de la pagina Bot (empieza con MT y tiene 3 partes separadas por punto)',
+    )
+  })
 }
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Promesa no manejada:', reason)
+})
+process.on('uncaughtException', (error) => {
+  console.error('Excepcion no controlada:', error.message)
+})
