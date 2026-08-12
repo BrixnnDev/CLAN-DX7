@@ -57,14 +57,14 @@ function Solicitudes() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-10 text-center">
           <span className="text-xs font-bold uppercase tracking-[0.3em] text-clan-red-500">
-            Solicitudes
+            Miembros verificados
           </span>
           <h2 className="mt-2 text-3xl font-black uppercase sm:text-4xl">
-            Postulantes al <span className="text-clan-red-500">clan</span>
+            Nuevos <span className="text-clan-red-500">integrantes</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-gray-400">
-            Estas son las personas que pidieron unirse con el comando /team en
-            Discord.
+            Jugadores que pasaron la verificación con el comando /team en
+            Discord y fueron aprobados por nuestros administradores.
           </p>
         </div>
 
@@ -94,8 +94,8 @@ function Solicitudes() {
 
         {!loading && !error && API && requests.length === 0 && (
           <p className="text-center text-sm text-gray-400">
-            Aún no hay solicitudes. Usa <span className="text-clan-red-500">/team</span> en
-            el Discord del clan para aparecer aquí.
+            Aún no hay miembros verificados. Usa <span className="text-clan-red-500">/team</span> en
+            el Discord del clan y espera la aprobación de un administrador.
           </p>
         )}
 
