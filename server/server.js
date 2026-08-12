@@ -29,6 +29,7 @@ const ADMIN_CHANNEL_ID = process.env.ADMIN_CHANNEL_ID ?? ''
 const VERIFY_CHANNEL_ID = process.env.VERIFY_CHANNEL_ID ?? ''
 const ROLE_ID = process.env.ROLE_ID ?? ''
 const VERIFY_ROLE_ID = process.env.VERIFY_ROLE_ID ?? ''
+const MEMBER_ROLE_ID = process.env.MEMBER_ROLE_ID ?? ''
 const API_SECRET = process.env.API_SECRET ?? ''
 const GUILD_ID = process.env.GUILD_ID ?? ''
 const PORT = process.env.PORT ?? 3000
@@ -348,6 +349,9 @@ if (!DISCORD_TOKEN) {
 
           if (VERIFY_ROLE_ID) {
             await addRole(VERIFY_ROLE_ID)
+          }
+          if (MEMBER_ROLE_ID) {
+            await addRole(MEMBER_ROLE_ID)
           }
           if (request.selectedRoleId) {
             await addRole(request.selectedRoleId)
