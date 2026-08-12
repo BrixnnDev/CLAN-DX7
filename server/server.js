@@ -155,6 +155,28 @@ app.get('/api/notifications', (_req, res) => {
   res.json([])
 })
 
+const isAuthorized = (req) =>
+  !API_SECRET || req.headers['x-api-secret'] === API_SECRET
+
+app.delete('/api/team-requests/all', (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' })
+  saveRequests([])
+  res.json({ ok: true })
+})
+
+app.delete('/api/team-requests/:id', (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' })
+  const requests = loadRequests().filter((r) => r.id !== req.params.id)
+  saveRequests(requests)
+  res.json({ ok: true })
+})
+
+app.get('/api/admin/clear', (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' })
+  saveRequests([])
+  res.json({ ok: true })
+})
+
 app.listen(PORT, () => {
   console.log(`API escuchando en el puerto ${PORT}`)
 })
