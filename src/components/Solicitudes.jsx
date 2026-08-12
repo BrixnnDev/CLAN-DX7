@@ -121,19 +121,28 @@ function Solicitudes() {
                       <FaDiscord className="h-3.5 w-3.5 text-clan-red-500" />
                       @{r.discordUser}
                     </p>
-                    <span
-                      className="mt-1.5 inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-semibold"
-                      style={{
-                        borderColor: r.roleColor
-                          ? `#${r.roleColor.toString(16).padStart(6, '0')}66`
-                          : undefined,
-                        color: r.roleColor
-                          ? `#${r.roleColor.toString(16).padStart(6, '0')}`
-                          : '#f87171',
-                      }}
-                    >
-                      {r.role}
-                    </span>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {String(r.role ?? '')
+                        .split('·')
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                        .map((role, i) => (
+                          <span
+                            key={`${role}-${i}`}
+                            className="inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-semibold"
+                            style={{
+                              borderColor: r.roleColor
+                                ? `#${r.roleColor.toString(16).padStart(6, '0')}66`
+                                : undefined,
+                              color: r.roleColor
+                                ? `#${r.roleColor.toString(16).padStart(6, '0')}`
+                                : '#f87171',
+                            }}
+                          >
+                            {role}
+                          </span>
+                        ))}
+                    </div>
                   </div>
                 </div>
 
