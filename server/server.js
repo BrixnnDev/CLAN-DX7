@@ -34,6 +34,61 @@ const API_SECRET = process.env.API_SECRET ?? ''
 const GUILD_ID = process.env.GUILD_ID ?? ''
 const PORT = process.env.PORT ?? 3000
 
+const FF_API_URL = process.env.FF_API_URL ?? 'https://developers.freefirecommunity.com/api/v1/info'
+const FF_API_KEY = process.env.FF_API_KEY ?? ''
+const FF_REGIONS = (process.env.FF_REGIONS ?? 'br,latam,us,ind,id,pk,vn,sg')
+  .split(',')
+  .map((r) => r.trim())
+  .filter(Boolean)
+
+const FF_RANK_MAP = {
+  296: 'Bronce I', 297: 'Bronce II', 298: 'Bronce III',
+  299: 'Plata I', 300: 'Plata II', 301: 'Plata III',
+  302: 'Oro I', 303: 'Oro II', 304: 'Oro III', 305: 'Oro IV',
+  306: 'Platino I', 307: 'Platino II', 308: 'Platino III', 309: 'Platino IV',
+  310: 'Diamante I', 311: 'Diamante II', 312: 'Diamante III', 313: 'Diamante IV', 314: 'Diamante V',
+  315: 'Maestro I', 316: 'Maestro II', 317: 'Maestro III', 318: 'Maestro IV', 319: 'Maestro V',
+  320: 'Gran Maestro I', 321: 'Gran Maestro II', 322: 'Gran Maestro III', 323: 'Gran Maestro IV',
+  324: 'Gran Maestro V', 325: 'Gran Maestro VI', 326: 'Gran Maestro VII', 327: 'Héroe',
+}
+
+async function fetchPlayerInfo(uid) {
+  const headers = { Accept: 'application/json' }
+  if (FF_API_KEY) headers['x-api-key'] = FF_API_KEY
+  for (const region of FF_REGIONS) {
+    try {
+      const res = await fetch(
+        `${FF_API_URL}?region=${encodeURIComponent(region)}&uid=${encodeURIComponent(uid)}`,
+        { headers, signal: AbortSignal.timeout(8000) },
+      )
+      if (!res.ok) continue
+      const data = await res.json()
+      const basic =
+        data?.basicInfo ??
+        data?.basicinfo ??
+        data?.result?.basicinfo ??
+        data?.data?.basicInfo ??
+        data
+      const nickname = basic?.nickname
+      if (!nickname) continue
+      const clan = data?.clanBasicInfo ?? data?.claninfo ?? {}
+      return {
+        nickname,
+        level: basic.level ?? null,
+        rank: FF_RANK_MAP[basic.rank] ?? basic.rank ?? null,
+        likes: basic.liked ?? null,
+        region: (basic.region ?? region).toUpperCase(),
+        clanName: clan.clanName ?? clan.clanname ?? null,
+        clanLevel: clan.clanLevel ?? clan.clanlevel ?? null,
+        clanMembers: clan.memberNum ?? clan.membernum ?? null,
+      }
+    } catch {
+      continue
+    }
+  }
+  return null
+}
+
 if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
 
 function loadRequests() {
@@ -77,18 +132,35 @@ function buildAdminEmbed(request, guild) {
   const selected = request.selectedRoleId
     ? guild?.roles.resolve(request.selectedRoleId)
     : null
+  const fields = [
+    { name: 'Usuario', value: `@${request.discordUser}`, inline: true },
+    { name: 'Rol actual', value: request.role, inline: true },
+    { name: 'Nombre en el juego', value: request.gameName, inline: true },
+    { name: 'ID del juego', value: request.gameId, inline: true },
+  ]
+  if (request.ffLevel) {
+    fields.push({ name: 'Nivel', value: `${request.ffLevel}`, inline: true })
+  }
+  if (request.ffRank) {
+    fields.push({ name: 'Rango', value: request.ffRank, inline: true })
+  }
+  if (request.ffClan) {
+    fields.push({
+      name: 'Clan',
+      value: request.ffClan + (request.ffLevel ? '' : ''),
+      inline: true,
+    })
+  }
+  if (request.ffRegion) {
+    fields.push({ name: 'Región', value: request.ffRegion, inline: true })
+  }
+  fields.push({ name: 'Rol a asignar', value: selected ? selected.name : 'No elegido' })
   return new EmbedBuilder()
     .setColor(0xb91c1c)
     .setTitle('Nueva solicitud para DX7')
     .setDescription(`Solicitud de <@${request.discordId}>`)
     .setThumbnail(request.avatar)
-    .addFields(
-      { name: 'Usuario', value: `@${request.discordUser}`, inline: true },
-      { name: 'Rol actual', value: request.role, inline: true },
-      { name: 'Nombre en el juego', value: request.gameName, inline: true },
-      { name: 'ID del juego', value: request.gameId, inline: true },
-      { name: 'Rol a asignar', value: selected ? selected.name : 'No elegido' },
-    )
+    .addFields(fields)
     .setFooter({ text: 'Elige el rol en el menú y luego presiona Aprobar' })
     .setTimestamp()
 }
@@ -231,47 +303,46 @@ if (!DISCORD_TOKEN) {
           .setCustomId('team_modal')
           .setTitle('Solicitud para unirte a DX7')
 
-        const nombreJuego = new TextInputBuilder()
-          .setCustomId('nombre_juego')
-          .setLabel('Nombre dentro del juego')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setMaxLength(30)
-
         const idJuego = new TextInputBuilder()
           .setCustomId('id_juego')
-          .setLabel('ID del juego')
+          .setLabel('ID del juego (perfil → Copiar ID)')
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
           .setMaxLength(30)
 
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(nombreJuego),
-          new ActionRowBuilder().addComponents(idJuego),
-        )
+        modal.addComponents(new ActionRowBuilder().addComponents(idJuego))
 
         await interaction.showModal(modal)
         return
       }
 
       if (interaction.isModalSubmit() && interaction.customId === 'team_modal') {
-        const nombreJuego = interaction.fields.getTextInputValue('nombre_juego')
-        const idJuego = interaction.fields.getTextInputValue('id_juego')
+        const uid = interaction.fields.getTextInputValue('id_juego').trim()
         const user = interaction.user
         const member = interaction.member
 
-        const role = member?.roles?.highest?.name ?? 'Miembro'
-        const roleColor = member?.roles?.highest?.color ?? 0
+        const info = await fetchPlayerInfo(uid)
+        if (!info) {
+          return interaction.reply({
+            content:
+              '❌ No encontré un jugador de Free Fire con ese ID. Revisa que sea tu ID de perfil e inténtalo de nuevo.',
+            ephemeral: true,
+          })
+        }
 
         const request = addRequest({
           id: `${Date.now()}`,
           discordUser: user.username,
           discordId: user.id,
           avatar: user.displayAvatarURL({ extension: 'png', size: 256 }),
-          role,
-          roleColor,
-          gameName: nombreJuego,
-          gameId: idJuego,
+          role: member?.roles?.highest?.name ?? 'Miembro',
+          roleColor: member?.roles?.highest?.color ?? 0,
+          gameName: info.nickname,
+          gameId: uid,
+          ffLevel: info.level ?? null,
+          ffRank: info.rank ?? null,
+          ffClan: info.clanName ?? null,
+          ffRegion: info.region ?? null,
           status: 'pending',
           createdAt: new Date().toISOString(),
         })
@@ -287,8 +358,7 @@ if (!DISCORD_TOKEN) {
         }
 
         await interaction.reply({
-          content:
-            '✅ ¡Solicitud enviada! Un administrador la revisará y elegirá tu rol. Si es aprobada, aparecerás en la página de miembros.',
+          content: `✅ Jugador encontrado: **${info.nickname}** (Nivel ${info.level ?? '?'}${info.rank ? ` · ${info.rank}` : ''}${info.clanName ? ` · Clan ${info.clanName}` : ''}). Tu solicitud fue enviada; un administrador la revisará.`,
           ephemeral: true,
         })
         return

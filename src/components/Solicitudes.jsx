@@ -161,6 +161,35 @@ function Solicitudes() {
                   </div>
                 </div>
 
+                {(r.ffLevel || r.ffRank || r.ffClan || r.ffRegion) && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    {r.ffLevel && (
+                      <div className="rounded-lg border border-white/10 bg-night-850 p-3 text-center">
+                        <p className="text-sm font-bold">{r.ffLevel}</p>
+                        <p className="text-[10px] uppercase text-gray-500">Nivel</p>
+                      </div>
+                    )}
+                    {r.ffRank && (
+                      <div className="rounded-lg border border-white/10 bg-night-850 p-3 text-center">
+                        <p className="truncate text-sm font-bold">{r.ffRank}</p>
+                        <p className="text-[10px] uppercase text-gray-500">Rango</p>
+                      </div>
+                    )}
+                    {r.ffClan && (
+                      <div className="rounded-lg border border-white/10 bg-night-850 p-3 text-center">
+                        <p className="truncate text-sm font-bold">{r.ffClan}</p>
+                        <p className="text-[10px] uppercase text-gray-500">Clan</p>
+                      </div>
+                    )}
+                    {r.ffRegion && (
+                      <div className="rounded-lg border border-white/10 bg-night-850 p-3 text-center">
+                        <p className="text-sm font-bold">{r.ffRegion}</p>
+                        <p className="text-[10px] uppercase text-gray-500">Región</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <p className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider text-gray-500">
                   <FaUserPlus className="h-3 w-3 text-clan-red-500" />
                   {timeAgo(r.createdAt)}
